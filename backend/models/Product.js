@@ -3,64 +3,60 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a product name'],
+    required: [true, 'Please provide a product name'],
     trim: true,
   },
   description: {
     type: String,
-    required: [true, 'Please add a product description'],
+    required: true,
   },
   category: {
     type: String,
     required: true,
-    enum: ['mens', 'womens', 'kids', 'accessories'],
+    enum: ['men', 'women', 'kids', 'accessories'],
   },
   price: {
     type: Number,
     required: true,
     min: 0,
   },
-  discount: {
+  originalPrice: {
     type: Number,
-    default: 0,
     min: 0,
-    max: 100,
   },
-  finalPrice: Number,
+  stock: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   images: [String],
-  sizes: [{
-    size: String,
-    stock: Number,
-  }],
+  sizes: [String],
   colors: [String],
-  material: String,
   rating: {
     type: Number,
     default: 0,
+    min: 0,
+    max: 5,
   },
-  reviews: [{
-    userId: mongoose.Schema.ObjectId,
-    userName: String,
-    rating: Number,
-    comment: String,
-    createdAt: Date,
-  }],
-  totalStock: Number,
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
+  reviews: [
+    {
+      user: mongoose.Schema.Types.ObjectId,
+      comment: String,
+      rating: Number,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
   },
-});
-
-productSchema.pre('save', function(next) {
-  if (this.isModified('price') || this.isModified('discount')) {
-    this.finalPrice = this.price - (this.price * this.discount) / 100;
-  }
-  next();
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Product', productSchema);

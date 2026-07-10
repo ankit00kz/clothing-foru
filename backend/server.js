@@ -18,10 +18,17 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/clothing-
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
+// Import Routes
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+
 // Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
