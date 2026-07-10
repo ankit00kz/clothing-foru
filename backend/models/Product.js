@@ -3,21 +3,79 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a product name'],
+    required: [true, 'Please provide a product name'],
     trim: true,
   },
   description: {
     type: String,
-    required: [true, 'Please add a product description'],
+    required: true,
   },
   category: {
     type: String,
     required: true,
-    enum: ['mens', 'womens', 'kids', 'accessories'],
+    enum: [
+      'men-clothing',
+      'men-shoes',
+      'men-accessories',
+      'women-clothing',
+      'women-shoes',
+      'women-accessories',
+      'kids-clothing',
+      'kids-shoes',
+      'kids-accessories',
+      'unisex-clothing',
+      'unisex-shoes',
+      'unisex-accessories',
+      'sports-wear',
+      'ethnic-wear',
+      'formal-wear',
+      'casual-wear',
+      'seasonal',
+      'sale',
+    ],
+  },
+  subcategory: {
+    type: String,
+    enum: [
+      'shirts',
+      'pants',
+      'dresses',
+      'skirts',
+      'jackets',
+      'hoodies',
+      'sweaters',
+      'shorts',
+      'underwear',
+      'socks',
+      'sneakers',
+      'boots',
+      'sandals',
+      'formal-shoes',
+      'casual-shoes',
+      'hats',
+      'scarves',
+      'belts',
+      'bags',
+      'sunglasses',
+      'watches',
+      'jewelry',
+      'activewear',
+      'swimwear',
+      'loungewear',
+      'sarees',
+      'lehengas',
+      'suits',
+      'blazers',
+      'tuxedos',
+    ],
   },
   price: {
     type: Number,
     required: true,
+    min: 0,
+  },
+  originalPrice: {
+    type: Number,
     min: 0,
   },
   discount: {
@@ -26,41 +84,65 @@ const productSchema = new mongoose.Schema({
     min: 0,
     max: 100,
   },
-  finalPrice: Number,
+  stock: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   images: [String],
-  sizes: [{
-    size: String,
-    stock: Number,
-  }],
-  colors: [String],
-  material: String,
+  thumbnail: String,
+  sizes: [String],
+  colors: [
+    {
+      name: String,
+      hex: String,
+    },
+  ],
+  material: [String],
+  brand: String,
   rating: {
     type: Number,
     default: 0,
+    min: 0,
+    max: 5,
   },
-  reviews: [{
-    userId: mongoose.Schema.ObjectId,
-    userName: String,
-    rating: Number,
-    comment: String,
-    createdAt: Date,
-  }],
-  totalStock: Number,
-  isActive: {
+  reviewCount: {
+    type: Number,
+    default: 0,
+  },
+  reviews: [
+    {
+      user: mongoose.Schema.Types.ObjectId,
+      userName: String,
+      comment: String,
+      rating: Number,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+  tags: [String],
+  isFeatured: {
+    type: Boolean,
+    default: false,
+  },
+  isNewArrival: {
     type: Boolean,
     default: true,
+  },
+  isTrending: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-});
-
-productSchema.pre('save', function(next) {
-  if (this.isModified('price') || this.isModified('discount')) {
-    this.finalPrice = this.price - (this.price * this.discount) / 100;
-  }
-  next();
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Product', productSchema);
