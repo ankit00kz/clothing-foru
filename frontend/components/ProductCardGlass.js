@@ -3,26 +3,40 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
+import { getProductImage } from '@/lib/productImages';
 
 export default function ProductCardGlass({ product }) {
   const [isHovered, setIsHovered] = useState(false);
-  const discount = product.discount || ((product.originalPrice - product.price) / product.originalPrice * 100).toFixed(0);
+  const discount = product.discount || (product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0);
+  
+  // Get image from product or from our image library
+  const imageUrl = product.images?.[0] || product.url || getProductImage(product.category)?.url;
+  const thumbUrl = product.thumbnail || product.thumb || getProductImage(product.category)?.thumb || imageUrl;
 
   return (
     <Link href={`/product/${product._id}`}>
       <div
-        className="product-card cursor-pointer"
+        className="product-card cursor-pointer h-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Image Container */}
-        <div className="product-card-image relative">
-          <Image
-            src={product.images?.[0] || '/placeholder-product.png'}
-            alt={product.name}
-            fill
-            className="object-cover"
-          />
+        <div className="product-card-image relative w-full h-64 mb-4">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover rounded-xl"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 rounded-xl flex items-center justify-center">
+              <span className="text-gray-400">No image</span>
+            </div>
+          )}
 
           {/* Discount Badge */}
           {discount > 0 && (
@@ -40,12 +54,12 @@ export default function ProductCardGlass({ product }) {
 
           {/* Overlay Action Buttons */}
           <div
-            className={`absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center gap-3 transition-all duration-300 ${
+            className={`absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center gap-3 rounded-xl transition-all duration-300 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}
           >
             <button className="btn-glass scale-75 hover:scale-90 transition-transform">
-              ❤️ Add to Wishlist
+              ❤️ Wishlist
             </button>
             <button className="btn-gradient scale-75 hover:scale-90 transition-transform">
               🛒 Quick Add
@@ -73,18 +87,18 @@ export default function ProductCardGlass({ product }) {
           <div className="flex items-center gap-2">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <span key={i} className={i < Math.floor(product.rating) ? '⭐' : '☆'}>
-                  {i < Math.floor(product.rating) ? '⭐' : '☆'}
+                <span key={i} className="text-lg">
+                  {i < Math.floor(product.rating || 0) ? '⭐' : '☆'}
                 </span>
               ))}
             </div>
-            <span className="text-sm text-gray-600">({product.reviewCount})</span>
+            <span className="text-sm text-gray-600">({product.reviewCount || 0})</span>
           </div>
 
           {/* Colors */}
           {product.colors && product.colors.length > 0 && (
             <div className="flex gap-2">
-              {product.colors.map((color, idx) => (
+              {product.colors.slice(0, 4).map((color, idx) => (
                 <div
                   key={idx}
                   className="w-5 h-5 rounded-full border-2 border-gray-300 cursor-pointer hover:scale-110 transition-transform"

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import ProductCardGlass from './ProductCardGlass';
-import AnimatedSection from './AnimatedSection';
+import { getCategoryImages, getRandomProductImage } from '@/lib/productImages';
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState([]);
@@ -22,9 +22,111 @@ export default function FeaturedProducts() {
             },
           }
         );
-        setProducts(response.data.data || []);
+        
+        // Add images to products from our library
+        const productsWithImages = response.data.data?.map((product) => {
+          const categoryImages = getCategoryImages(product.category);
+          const randomImage = getRandomProductImage(product.category);
+          
+          return {
+            ...product,
+            images: product.images && product.images.length > 0 
+              ? product.images 
+              : [randomImage?.url || randomImage?.thumb],
+            thumbnail: product.thumbnail || randomImage?.thumb,
+          };
+        }) || [];
+        
+        setProducts(productsWithImages);
       } catch (error) {
-        console.log('Failed to fetch products');
+        console.log('Failed to fetch products, using sample data');
+        
+        // Fallback: Create sample products with real images
+        const sampleProducts = [
+          {
+            _id: '1',
+            name: 'Classic Cotton T-Shirt',
+            category: 'men-clothing',
+            price: 29.99,
+            originalPrice: 49.99,
+            stock: 45,
+            rating: 4.5,
+            reviewCount: 128,
+            isNewArrival: true,
+            isTrending: true,
+            ...getRandomProductImage('men-clothing'),
+          },
+          {
+            _id: '2',
+            name: 'Summer Floral Dress',
+            category: 'women-clothing',
+            price: 59.99,
+            originalPrice: 89.99,
+            stock: 32,
+            rating: 4.8,
+            reviewCount: 256,
+            isNewArrival: true,
+            ...getRandomProductImage('women-clothing'),
+          },
+          {
+            _id: '3',
+            name: 'Running Shoes',
+            category: 'sports-wear',
+            price: 119.99,
+            originalPrice: 179.99,
+            stock: 67,
+            rating: 4.9,
+            reviewCount: 389,
+            isTrending: true,
+            ...getRandomProductImage('sports-wear'),
+          },
+          {
+            _id: '4',
+            name: 'Kids Character Shirt',
+            category: 'kids-clothing',
+            price: 24.99,
+            originalPrice: 34.99,
+            stock: 28,
+            rating: 4.7,
+            reviewCount: 167,
+            isNewArrival: true,
+            ...getRandomProductImage('kids-clothing'),
+          },
+          {
+            _id: '5',
+            name: 'Casual Jeans',
+            category: 'casual-wear',
+            price: 59.99,
+            originalPrice: 79.99,
+            stock: 55,
+            rating: 4.6,
+            reviewCount: 212,
+            ...getRandomProductImage('casual-wear'),
+          },
+          {
+            _id: '6',
+            name: 'Ethnic Saree',
+            category: 'ethnic-wear',
+            price: 89.99,
+            originalPrice: 129.99,
+            stock: 20,
+            rating: 4.8,
+            reviewCount: 98,
+            ...getRandomProductImage('ethnic-wear'),
+          },
+        ];
+        
+        const productsWithImages = sampleProducts.map((product) => ({
+          ...product,
+          images: [product.url],
+          colors: [
+            { name: 'Black', hex: '#000000' },
+            { name: 'White', hex: '#FFFFFF' },
+          ],
+          sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+        }));
+        
+        setProducts(productsWithImages);
       } finally {
         setLoading(false);
       }
@@ -77,11 +179,17 @@ export default function FeaturedProducts() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, idx) => (
-              <div key={product._id} className="scale-in" style={{ animationDelay: `${idx * 100}ms` }}>
-                <ProductCardGlass product={product} />
+            {products.length > 0 ? (
+              products.map((product, idx) => (
+                <div key={product._id} className="scale-in" style={{ animationDelay: `${idx * 100}ms` }}>
+                  <ProductCardGlass product={product} />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">No products available</p>
               </div>
-            ))}
+            )}
           </div>
         )}
 
